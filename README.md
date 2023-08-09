@@ -16,7 +16,6 @@ Programs designed for managing the iSanXoT results.
 │   ├── positioner
 │   │   ├── add_pep_position.py
 ├── potpurri
-│   ├── tests
 │   ├── convert_bed_to_fasta.py
 ├── README.md
 └── .gitignore
@@ -25,7 +24,7 @@ Programs designed for managing the iSanXoT results.
 
 **src** is the folder where the programs are saved.
 
-**tests** folder containing test files.
+**tests** folder contains test files. Note: This folder may not exist.
 
 **potpourri** is a folder for discarding. It is a mixture of programs without an objective.
 
