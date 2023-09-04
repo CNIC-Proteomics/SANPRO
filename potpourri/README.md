@@ -1,11 +1,20 @@
 
 # Programs
 
+* compare_cols_outStats: Compare column values from two "outStats" tables by generating various plots: scatter plots, histograms, ...
+
+Usage:
+```
+python compare_cols_outStats.py -i1 tests/test3/scan2pdm_outStats.1.tsv  -i2 tests/test3/scan2pdm_outStats.2.tsv  -id1 "idsup,idinf"  -id2 "idsup,idinf"  -c1 "Z"  -c2 "Z"  -o tests/test3/scatterplot_1_vs_2.png
+python compare_cols_outStats.py -i1 tests/test3/scan2pdm_outStats.1.tsv  -i2 tests/test3/scan2pdm_outStats.2.tsv  -id1 "idsup,idinf"  -id2 "idsup,idinf"  -c1 "Xsup"  -c2 "Xsup"  -o tests/test3/scatterplot_X_1_vs_2.png
+```
+
+
 * convert_bed_to_fasta: Convert BED file to FASTA.
 
 Usage:
 ```
-python  src/potpourri/convert_bed_to_fasta.py -i  tests/test5/Ribo-seq_ORFs.bed -o  tests/test5/Ribo-seq_ORFs.fasta
+python  potpourri/convert_bed_to_fasta.py -i  tests/test5/Ribo-seq_ORFs.bed -o  tests/test5/Ribo-seq_ORFs.fasta
 ```
 
 Bed format:
@@ -42,3 +51,4 @@ The 9 additional optional BED fields are:
 
   12. blockStarts - A comma-separated list of block starts. All of the blockStart positions should be calculated relative to chromStart. The number of items in this list should correspond to blockCount.
   
+
