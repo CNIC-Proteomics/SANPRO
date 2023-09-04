@@ -1,4 +1,4 @@
-# sanpro
+# SANPRO
 
 Programs designed for managing the iSanXoT results.
 
@@ -29,7 +29,7 @@ Programs designed for managing the iSanXoT results.
 ## Download the repository
 
 Download the SANPRO programs from the GitHub repository located at 
-<br/><a href='https://github.com/CNIC-Proteomics/sanpro'>https://github.com/CNIC-Proteomics/sanpro</a>.
+<br/><a href='https://github.com/CNIC-Proteomics/SANPRO'>https://github.com/CNIC-Proteomics/SANPRO</a>.
 
 <img src='docs/github_sanpro_1.png'/>
 
@@ -46,12 +46,12 @@ Then, include the path of scripts into PATH environment variable.
 
 On Unix-based systems:
 ```
-export PATH=${PATH}:/U_Proteomica/UNIDAD/sanpro/basic
+export PATH=${PATH}:/U_Proteomica/UNIDAD/SANPRO/basic
 ```
 
 On Windows:
 ```
-SETX PATH "%PATH%;S:\U_Proteomica\UNIDAD\sanpro\basic"
+SETX PATH "%PATH%;S:\U_Proteomica\UNIDAD\SANPRO\basic"
 ```
 
 Retrieve the environment variables
@@ -62,6 +62,13 @@ SET
 # Programs
 
 ## basic: programs for handling large files
+
+* get_n_rows: Retrieve the N rows from the given file.
+
+Usage:
+```
+python get_n_rows.py -i tests/test2/scan2pdm_outStats.tsv -n 10 -o tests/test2/scan2pdm_outStats.n_rows.tsv
+```
 
 * diff_tables: Retrieve the rows that differ based on specified columns from two tabular-separated files.
 
@@ -84,13 +91,6 @@ Usage:
 python sort_table.py -i tests/test2/scan2pdm_outStats.tsv -s "idsup,Z,tags" -o tests/test2/scan2pdm_outStats.sorted.tsv
 ```
 
-* get_n_rows: Retrieve the N rows from the given file.
-
-Usage:
-```
-python get_n_rows.py -i tests/test2/scan2pdm_outStats.tsv -n 10 -o tests/test2/scan2pdm_outStats.n_rows.tsv
-```
-
 * remove_cols: Remove the specified columns from the table.
 
 Usage:
@@ -105,12 +105,6 @@ Usage:
 python select_cols.py -i tests/test2/scan2pdm_outStats.tsv -o tests/test2/scan2pdm_outStats.selected_cols.tsv -c "idsup , Xsup , Vsup , n , Z , FDR, tags"
 ```
 
-* cmp_val_tables: Create a scatter plot using the column values from two tables (tabular-separated files).
-
-Usage:
-```
-python cmp_val_tables.py -i1 tests/test3/scan2pdm_outStats.1.tsv  -i2 tests/test3/scan2pdm_outStats.2.tsv  -id1 "idsup,idinf"  -id2 "idsup,idinf"  -c1 "Z"  -c2 "Z"  -o tests/test3/scatterplot_1_vs_2.png
-```
 
 
 ## positioner: programs that add positions
@@ -122,5 +116,12 @@ Usage:
 python add_pep_position.py -i tests/test4/Npep2prot.tsv  -f tests/test4/mouse_202206_uni-sw-tr.target.fasta  -hp "peptide"  -hq "protein" -o tests/test4/Npep2prot.new.tsv
 ```
 
+* compare_cols_outStats: Compare column values from two "outStats" tables by generating various plots: scatter plots, histograms, ...
+
+Usage:
+```
+python compare_cols_outStats.py -i1 tests/test3/scan2pdm_outStats.1.tsv  -i2 tests/test3/scan2pdm_outStats.2.tsv  -id1 "idsup,idinf"  -id2 "idsup,idinf"  -c1 "Z"  -c2 "Z"  -o tests/test3/scatterplot_1_vs_2.png
+python compare_cols_outStats.py -i1 tests/test3/scan2pdm_outStats.1.tsv  -i2 tests/test3/scan2pdm_outStats.2.tsv  -id1 "idsup,idinf"  -id2 "idsup,idinf"  -c1 "Xsup"  -c2 "Xsup"  -o tests/test3/scatterplot_X_1_vs_2.png
+```
 
 
