@@ -4,6 +4,7 @@
 """
 
 # import global modules
+import os
 import sys
 import argparse
 import logging
@@ -11,27 +12,32 @@ import re
 import pandas as pd
 import numpy as np
 
+#########################
+# Import local packages #
+#########################
+sys.path.append(f"{os.path.dirname(__file__)}/../libs")
+import common
 
 ###################
 # Parse arguments #
 ###################
 
 parser = argparse.ArgumentParser(
-    description='Filter the given table file based on the provided conditions (header, operator, value)',
-    epilog='''Examples:
+    description='Filter the given table file based on the provided conditions (header, operator, value).',
+    epilog='''Usages:
         
-    python  filter_table.py
-      -i scan2pdm_outStats.tsv
-      -f '(tags = out)'
-      -o  scan2pdm_outStats.tags_out.tsv
+    python  filter_table.py  -c config.ini
+    
+    Note: Please read the config file to determine which parameters should be used.
     ''',
     formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-i',  required=True, help='Input table in tabular-separated format')
-parser.add_argument('-f',  required=True, help='Condition used for the filtering. Example: ([FDR] < 0.05) & ([n] >= 10) & ([n] <= 100)')
-parser.add_argument('-o',  required=True, help='Output file that contains the filtered data from the input file')
+parser.add_argument('-c', required=True, help='Config input file in YAML format')
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+
+# get the name of script
+script_name = os.path.splitext( os.path.basename(__file__) )[0].upper()
 
 ###################
 # Local functions #
@@ -87,16 +93,20 @@ def filter_dataframe(df, flt):
 #################
 # Main function #
 #################
+
 def main(args):
     '''
     Main function
     '''    
     logging.info("getting the input parameters...")
-    ifile = args.i
-    ifilter = args.f
+    conf_args = common.read_config(script_name, args.c)
+    [ print(f"{k} = {v}") for k,v in conf_args.items() ]
+    ifile = conf_args['infile']
+    ifilter = conf_args['filter']
     # ifilter = "([tags] == 'out')"
     # ifilter = "([idsup] == 'AAFTECCQAAD\[160.01746\]K')" # This is not work due to the brackets in the sequence :-(
-    ofile = args.o
+    ofile = conf_args['outfile']
+
 
     logging.info("reading input files...")
     data = pd.read_csv(ifile, sep="\t", low_memory=False)

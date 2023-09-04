@@ -4,32 +4,38 @@
 """
 
 # import global modules
+import os
 import sys
 import argparse
 import logging
 import pandas as pd
+
+#########################
+# Import local packages #
+#########################
+sys.path.append(f"{os.path.dirname(__file__)}/../libs")
+import common
 
 ###################
 # Parse arguments #
 ###################
 
 parser = argparse.ArgumentParser(
-    description='Retrieve the N rows from the given file',
-    epilog='''Examples:
+    description='Retrieve the N rows from the given file.',
+    epilog='''Usages:
         
-    python  get_n_rows.py
-      -i scan2pdm_outStats.tsv
-      -n 10
-      -o scan2pdm_outStats.n_rows.tsv      
+    python  get_n_rows.py  -c config.ini
+    
+    Note: Please read the config file to determine which parameters should be used.
     ''',
     formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-i',  required=True, help='Input table in tabular-separated format')
-parser.add_argument('-n',  required=True, help='The number of rows')
-parser.add_argument('-o',  required=True, help='Result containing N rows from the given table')
-
+parser.add_argument('-c', required=True, help='Config input file in YAML format')
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+
+# get the name of script
+script_name = os.path.splitext( os.path.basename(__file__) )[0].upper()
 
 
 #################
@@ -40,10 +46,12 @@ def main(args):
     Main function
     '''    
     logging.info("getting the input parameters...")
-    ifile = args.i
-    n_rows = int(args.n)
-    ofile = args.o
-
+    conf_args = common.read_config(script_name, args.c)
+    [ print(f"{k} = {v}") for k,v in conf_args.items() ]
+    ifile = conf_args['infile']
+    n_rows = int(conf_args['n_rows'])
+    ofile = conf_args['outfile']
+    
     logging.info("reading input file...")
     data = pd.read_csv(ifile, sep="\t", nrows=n_rows, low_memory=False)
 

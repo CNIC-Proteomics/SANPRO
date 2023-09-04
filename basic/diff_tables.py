@@ -4,34 +4,39 @@
 """
 
 # import global modules
+import os
 import sys
 import argparse
 import logging
 import re
 import pandas as pd
 
+#########################
+# Import local packages #
+#########################
+sys.path.append(f"{os.path.dirname(__file__)}/../libs")
+import common
+
 ###################
 # Parse arguments #
 ###################
 
 parser = argparse.ArgumentParser(
-    description='Retrieve the rows that differ based on specified columns from two tabular-separated files',
-    epilog='''Examples:
+    description='Retrieve the rows that differ based on specified columns from two tabular-separated files.',
+    epilog='''Usages:
         
-    python  diff_files.py
-      -i1 scan2pdm_tagged.tsv
-      -i2 scan2pdm_tagged2.tsv
-      -c  idsup,idinf,tags
-      -o  output.tsv
+    python  diff_tables.py  -c config.ini
+    
+    Note: Please read the config file to determine which parameters should be used.
     ''',
     formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-i1',  required=True, help='First file')
-parser.add_argument('-i2',  required=True, help='Second file')
-parser.add_argument('-c',  help='Columns separated by commas that determine the differences between files')
-parser.add_argument('-o',  required=True, help='Output file that captures the differences between the files')
+parser.add_argument('-c', required=True, help='Config input file in YAML format')
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+
+# get the name of script
+script_name = os.path.splitext( os.path.basename(__file__) )[0].upper()
 
 
 #################
@@ -42,11 +47,13 @@ def main(args):
     Main function
     '''    
     logging.info("getting the input parameters...")
-    ifile1 = args.i1
-    ifile2 = args.i2
-    cols = re.split('\s*,\s*',args.c) if args.c and args.c != '' else []
-    ofile = args.o
-
+    conf_args = common.read_config(script_name, args.c)
+    [ print(f"{k} = {v}") for k,v in conf_args.items() ]
+    ifile1 = conf_args['infile1']
+    ifile2 = conf_args['infile2']
+    cols = re.split('\s*,\s*', conf_args['cols']) if args.c and args.c != '' else []
+    ofile = conf_args['outfile']
+    
     logging.info("reading input files...")
     data1 = pd.read_csv(ifile1, sep="\t", low_memory=False)
     data2 = pd.read_csv(ifile2, sep="\t", low_memory=False)

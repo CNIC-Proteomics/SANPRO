@@ -1,6 +1,7 @@
 .spyproject/
 
 # ignore test files
+tests
 basic/tests
 positioner/tests
 potpourri/tests

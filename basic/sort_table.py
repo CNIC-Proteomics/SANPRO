@@ -4,51 +4,60 @@
 """
 
 # import global modules
+import os
 import sys
 import argparse
 import logging
 import re
 import pandas as pd
 
+#########################
+# Import local packages #
+#########################
+sys.path.append(f"{os.path.dirname(__file__)}/../libs")
+import common
+
 ###################
 # Parse arguments #
 ###################
 
 parser = argparse.ArgumentParser(
-    description='Sort the table file (in tabular-separated format) based on the specified columns',
-    epilog='''Examples:
+    description='Sort the table file (in tabular-separated format) based on the specified columns.',
+    epilog='''Usages:
         
-    python  sort_table.py
-      -i scan2pdm_outStats.tsv
-      -s  idsup,Z,tags
-      -o  scan2pdm_outStats.sorted.tsv
+    python  sort_table.py  -c config.ini
+    
+    Note: Please read the config file to determine which parameters should be used.
     ''',
     formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-i',  required=True, help='Input table in tabular-separated format')
-parser.add_argument('-s',  required=True, help='Columns separated by commas that sort the result file')
-parser.add_argument('-o',  required=True, help='Sorted input file')
+parser.add_argument('-c', required=True, help='Config input file in YAML format')
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
+# get the name of script
+script_name = os.path.splitext( os.path.basename(__file__) )[0].upper()
 
 #################
 # Main function #
 #################
+
 def main(args):
     '''
     Main function
-    '''    
+    '''
     logging.info("getting the input parameters...")
-    ifile = args.i
-    cols_order = re.split('\s*,\s*',args.s) if args.s and args.s != '' else []
-    ofile = args.o
+    conf_args = common.read_config(script_name, args.c)
+    [ print(f"{k} = {v}") for k,v in conf_args.items() ]    
+    ifile = conf_args['infile']
+    cols = re.split('\s*,\s*', conf_args['cols']) if args.c and args.c != '' else []
+    ofile = conf_args['outfile']
 
     logging.info("reading input file...")
     data = pd.read_csv(ifile, sep="\t", low_memory=False)
 
-    logging.info(f"sorting by the given columns: {cols_order}...")
-    data.sort_values(cols_order, ascending=True, inplace=True)
+    logging.info(f"sorting by the given columns: {cols}...")
+    data.sort_values(cols, ascending=True, inplace=True)
 
     logging.info("printing the output file...")
     data.to_csv(ofile, sep="\t", index=False)

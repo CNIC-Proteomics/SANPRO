@@ -35,7 +35,7 @@ Download the SANPRO programs from the GitHub repository located at
 
 Next, decompress the zip file.
 
-
+<!--
 ## Can I run a Python script without typing "python" before the script name?
 
 On Unix-based systems, you can add a shebang (#!/usr/bin/env python3) at the top of your script and make the script executable using the **chmod +x script.py** command.
@@ -58,6 +58,19 @@ Retrieve the environment variables
 ```
 SET
 ```
+-->
+
+## Prerequisities
+
+You have to be installed the **Python** programming language, and the following packages:
+
+    - pandas
+    - numpy
+    - logging
+    - re
+    - argparse
+    - configparser
+
 
 # Programs
 
@@ -67,42 +80,42 @@ SET
 
 Usage:
 ```
-python get_n_rows.py -i tests/test2/scan2pdm_outStats.tsv -n 10 -o tests/test2/scan2pdm_outStats.n_rows.tsv
+python basic/get_n_rows.py -c conf/config.ini
 ```
 
 * diff_tables: Retrieve the rows that differ based on specified columns from two tabular-separated files.
 
 Usage:
 ```
-python diff_tables.py -i1 tests/test1/scan2pdm_tagged.bak.tsv -i2 tests/test1/scan2pdm_tagged.tsv -o tests/test1/diff_table.tsv
+python basic/diff_tables.py -c conf/config.ini
 ```
 
 * filter_table: Filter the given table file based on the provided conditions (header, operator, value).
 
 Usage:
 ```
-python filter_table.py -i tests/test2/scan2pdm_outStats.tsv -f "([tags] == 'out')" -o  tests/test2/scan2pdm_outStats.tags_out.tsv
+python basic/filter_table.py -c conf/config.ini
 ```
 
 * sort_table: Sort the table file (in tabular-separated format) based on the specified columns.
 
 Usage:
 ```
-python sort_table.py -i tests/test2/scan2pdm_outStats.tsv -s "idsup,Z,tags" -o tests/test2/scan2pdm_outStats.sorted.tsv
+python basic/sort_table.py -c conf/config.ini
 ```
 
 * remove_cols: Remove the specified columns from the table.
 
 Usage:
 ```
-python remove_cols.py -i tests/test2/scan2pdm_outStats.tsv -o tests/test2/scan2pdm_outStats.removed_cols.tsv -c "idinf,Xinf,Vinf"
+python basic/remove_cols.py -c conf/config.ini
 ```
 
 * select_cols: Select the specified columns from the table.
 
 Usage:
 ```
-python select_cols.py -i tests/test2/scan2pdm_outStats.tsv -o tests/test2/scan2pdm_outStats.selected_cols.tsv -c "idsup , Xsup , Vsup , n , Z , FDR, tags"
+python basic/select_cols.py -c conf/config.ini
 ```
 
 
@@ -113,15 +126,10 @@ python select_cols.py -i tests/test2/scan2pdm_outStats.tsv -o tests/test2/scan2p
 
 Usage:
 ```
-python add_pep_position.py -i tests/test4/Npep2prot.tsv  -f tests/test4/mouse_202206_uni-sw-tr.target.fasta  -hp "peptide"  -hq "protein" -o tests/test4/Npep2prot.new.tsv
+python positioner/add_pep_position.py -i tests/test4/Npep2prot.tsv  -f tests/test4/mouse_202206_uni-sw-tr.target.fasta  -hp "peptide"  -hq "protein" -o tests/test4/Npep2prot.new.tsv
 ```
 
-* compare_cols_outStats: Compare column values from two "outStats" tables by generating various plots: scatter plots, histograms, ...
 
-Usage:
-```
-python compare_cols_outStats.py -i1 tests/test3/scan2pdm_outStats.1.tsv  -i2 tests/test3/scan2pdm_outStats.2.tsv  -id1 "idsup,idinf"  -id2 "idsup,idinf"  -c1 "Z"  -c2 "Z"  -o tests/test3/scatterplot_1_vs_2.png
-python compare_cols_outStats.py -i1 tests/test3/scan2pdm_outStats.1.tsv  -i2 tests/test3/scan2pdm_outStats.2.tsv  -id1 "idsup,idinf"  -id2 "idsup,idinf"  -c1 "Xsup"  -c2 "Xsup"  -o tests/test3/scatterplot_X_1_vs_2.png
-```
+## potpourri: programs that possess multiple applications without a specific general focus
 
 
