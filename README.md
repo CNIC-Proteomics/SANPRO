@@ -62,15 +62,16 @@ SET
 
 ## Prerequisities
 
-You have to be installed the **Python** programming language, and the following packages:
+You need to install the Python programming language and the following packages. To install these packages, you can use the pip module in Python:
 
-    - pandas
-    - numpy
-    - logging
-    - re
-    - argparse
-    - configparser
-
+```
+pip install pandas
+pip install numpy
+pip install logging
+pip install re
+pip install argparse
+pip install configparser
+```
 
 # Programs
 
