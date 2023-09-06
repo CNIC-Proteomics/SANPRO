@@ -36,8 +36,8 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-i',   required=True, help='Report file')
 parser.add_argument('-f',   required=True, help='Protein sequences in FASTA format')
-parser.add_argument('-hp',  required=True, help='Header name for the peptide level')
-parser.add_argument('-hq',  required=True, help='Header name for the protein level')
+parser.add_argument('-hp',  required=True, help='Column header of peptide level')
+parser.add_argument('-hq',  required=True, help='Column header of protein level')
 parser.add_argument('-o',   required=True, help='Output file that is the Report file with the peptide positions')
 args = parser.parse_args()
 
