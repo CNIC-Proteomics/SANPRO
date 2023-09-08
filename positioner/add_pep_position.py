@@ -8,14 +8,9 @@ import sys
 import argparse
 import logging
 import pandas as pd
-import numpy as np
 from pyfaidx import Fasta
+from Bio.SeqUtils.ProtParam import ProteinAnalysis
 
-# from pysam import FastaFile
- 
-# fasta = "test.fasta"
-# # read FASTA file
-# sequences_object = FastaFile(fasta)
 
 
 ###################
@@ -59,6 +54,13 @@ def union_ranges(a):
             b.append([begin, end])
     return b
 
+# Function that obtain the molecular weight from a protein sequence using BioPython
+def calculate_molecular_weight(s):    
+    # remove unambigous letter
+    s = s.replace('X','').replace('B','').replace('Z','')
+    X = ProteinAnalysis(s)
+    return round(X.molecular_weight(),2)
+
 
 #################
 # Main function #
@@ -86,49 +88,52 @@ def main(args):
     rep = report[[(hp,'LEVEL'),(hq,'LEVEL')]]
     # rename the columns
     rep.columns = [c[0] for c in rep.columns]
+    rep = rep.reset_index(drop=True)
     # Extract the raw peptide containing the delta-mass, if applicable.
+    rep[hp] = rep[hp].fillna('')
     p = [i[0] for i in rep[hp].str.split('__')]
     rep[f"{hp}_raw"] = p
     # if the columns has ';' separator, then split the multiple proteins in a list an create one column.
+    rep[hq] = rep[hq].fillna('')
     q = rep[hq].str.split(r"\s*;\s*", regex=True)
     rep[f"{hq}_raw"] = q
 
 
 
     logging.info("extracting the unique protein list...")
-    proteins = np.unique(rep[f"{hq}_raw"].explode().values)
-    proteins = np.unique(proteins)
+    proteins = rep[f"{hq}_raw"].explode().drop_duplicates().tolist()
 
 
 
     logging.info("reading fasta file filtering by the given proteins...")
     # get the protein id as key and filtering by the given list
-    fasta_ite = Fasta(ifile2, key_function = lambda x: x.split('|')[1], filt_function = lambda x: x in proteins)
+    fasta_ite = Fasta(ifile2, key_function = lambda x: x.split('|')[1] if len(x.split('|')) > 1 else x.split('|')[0], filt_function = lambda x: x in proteins)
     # get the proteins from the fasta
     fasta_proteins = fasta_ite.keys()
     # get the protein seq from the fasta
     fasta_proteins_seq = dict([(q,fasta_ite[q][:].seq) for q in fasta_proteins])
     # get the protein seq from the fasta
     fasta_proteins_seqlen = dict([(q,len(s)) for q,s in fasta_proteins_seq.items()])
+    # calculate the molecular weight (Da)
+    fasta_proteins_seqmw = dict([(q,calculate_molecular_weight(s)) for q,s in fasta_proteins_seq.items()])
     
     
 
     logging.info("getting the sequences for the list of proteins...")
-    # protein_seqs = [ [fasta_ite[q][:].seq for q in r if q in fasta_proteins] for r in rep[f"{hq}_raw"] ]
-    # rep[f"{hq}_seqs"] = protein_seqs
-    rep[f"{hq}_seqs"] = [ [fasta_proteins_seq[q] for q in r if q in fasta_proteins] for r in rep[f"{hq}_raw"] ]
+    # add the sequences
+    rep[f"{hq}_seqs"] = [ [fasta_proteins_seq[q] for q in r if q in fasta_proteins] if isinstance(r, list) else [''] for r in rep[f"{hq}_raw"] ]
     # add the length of sequences
-    # protein_seqlen = [ [len(s) for s in r] for r in protein_seqs ]    
-    # rep[f"{hq}_seqlen"] = protein_seqlen
-    rep[f"{hq}_seqlen"] = [ [fasta_proteins_seqlen[q] for q in r if q in fasta_proteins] for r in rep[f"{hq}_raw"] ]
-    
+    rep[f"{hq}_seqlen"] = [ [fasta_proteins_seqlen[q] for q in r if q in fasta_proteins] if isinstance(r, list) else [0] for r in rep[f"{hq}_raw"] ]
+    # add the molecular weight
+    rep[f"{hq}_seqmw"] = [ [fasta_proteins_seqmw[q] for q in r if q in fasta_proteins] if isinstance(r, list) else [0] for r in rep[f"{hq}_raw"] ]
+
     
     
     logging.info("getting the sequence position for the protein list...")
     # get a list of tuple with the peptide and the list of proteins
     ps = list(zip(rep[f"{hp}_raw"],rep[f"{hq}_seqs"]))
     # add the start/end index of peptide
-    peptide_pos = [ [ (s.find(r[0])+1,s.find(r[0])+len(r[0])) for s in r[1]] for r in ps ]
+    peptide_pos = [ [ (s.find(r[0])+1,s.find(r[0])+len(r[0])) if s != '' else [(0,0)] for s in r[1] ] for r in ps ]
     rep[f"{hp}_pos"] = peptide_pos
     
     
@@ -161,6 +166,8 @@ def main(args):
     report[('peptide_pos','STATS')] = [';'.join(['-'.join(map(str,i)) for i in p]) for p in rep[f"{hp}_pos"]]
     # add the length of protein sequences
     report[('protein_seqlen','STATS')] = [';'.join(map(str,p)) for p in rep[f"{hq}_seqlen"]]
+    # add the molecular weight in daltons
+    report[('protein_seqmw','STATS')] = [';'.join(map(str,p)) for p in rep[f"{hq}_seqmw"]]
     # add the protein coverage
     report[('protein_coverage','STATS')] = [';'.join(map(str,p)) for p in rep[f"{hq}_coverage"]]
     

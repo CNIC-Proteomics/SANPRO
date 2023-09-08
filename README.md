@@ -128,6 +128,8 @@ python basic/select_cols.py -c conf/config.ini
 Usage:
 ```
 python positioner/add_pep_position.py -i tests/test4/Npep2prot.tsv  -f tests/test4/mouse_202206_uni-sw-tr.target.fasta  -hp "peptide"  -hq "protein" -o tests/test4/Npep2prot.new.tsv
+
+python positioner/add_pep_position.py -i tests/test6/LIMMA_Quanprot_Quanpep_Normpep_Nscanpep.tsv  -f tests/test6/rabbit_202306_pro-sw-tr.target.fasta  -hp "peptide"  -hq "protein" -o tests/test6/LIMMA_Quanprot_Quanpep_Normpep_Nscanpep.new.tsv
 ```
 
 
