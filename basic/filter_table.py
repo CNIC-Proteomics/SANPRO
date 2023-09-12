@@ -59,6 +59,13 @@ def filter_dataframe(df, flt):
     '''
     # flag that controls whether the df was filtered or not.
     ok = False
+    
+    # BEGIN: patch for the values that contains brackets
+    xx = re.findall(r"'(.*)'", flt)
+    rr = [ (x,x.replace('[','{').replace(']','}')) for x in xx ]
+    flt = [ flt.replace(x,y) for x,y in rr ][0]
+    # END: patch for the values that contains brackets
+    
     # check if the given filters is applied into given dataframe
     f_cols = re.findall(r'\[([^\]]*)\]',flt)
     intcols = np.intersect1d(df.columns,f_cols).tolist() if f_cols else []
@@ -68,6 +75,11 @@ def filter_dataframe(df, flt):
         flt = flt.replace("[","['").replace("]","']")
         flt = flt.replace('[','df[')
         flt = f"df[{flt}]"
+        
+        # BEGIN: patch for the values that contains brackets
+        flt = flt.replace('{','[').replace('}',']')
+        # END: patch for the values that contains brackets
+
         try:
             # evaluate condition
             idx = pd.eval(flt)
@@ -104,7 +116,7 @@ def main(args):
     ifile = conf_args['infile']
     ifilter = conf_args['filter']
     # ifilter = "([tags] == 'out')"
-    # ifilter = "([idsup] == 'AAFTECCQAAD\[160.01746\]K')" # This is not work due to the brackets in the sequence :-(
+    # ifilter = "([idsup] == 'AAFTECCQAAD\[160.01746\]K')" # Fixed with a PATCH...
     ofile = conf_args['outfile']
 
 
