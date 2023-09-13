@@ -76,11 +76,12 @@ def main(args):
     data2 = pd.read_csv(ifile2, sep="\t", low_memory=False)
     
     
-    logging.info("removing outliers if applicable...")
     # tags columns exists and there are values (not all NaN)
     if 'tags' in data1.columns and all(data1['tags'].notna()):
+        logging.info("removing outliers in data_1 if applicable...")
         data1 = data1[data1['tags'].str.contains('out', na=False) == False]
     if 'tags' in data2.columns and all(data2['tags'].notna()):
+        logging.info("removing outliers in data_2 if applicable...")
         data2 = data2[data2['tags'].str.contains('out', na=False) == False]
 
 
