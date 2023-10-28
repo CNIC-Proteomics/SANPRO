@@ -132,6 +132,16 @@ python positioner/add_pep_position.py -i tests/test4/Npep2prot.tsv  -f tests/tes
 python positioner/add_pep_position.py -i tests/test6/LIMMA_Quanprot_Quanpep_Normpep_Nscanpep.tsv  -f tests/test6/rabbit_202306_pro-sw-tr.target.fasta  -hp "peptide"  -hq "protein" -o tests/test6/LIMMA_Quanprot_Quanpep_Normpep_Nscanpep.new.tsv
 ```
 
+* get_appris: Retrieve APPRIS annotations for the given protein and positions
+
+Usage:
+```
+python positioner/get_appris.py  -i tests/test7/Paths_PDMTableMaker_PDMTable_GM_2.txt  -c "q,b,e"  -d tests/test7/human_202306.appris.gtf -o tests/test7/appris_annots.gtf
+```
+
+
+
+
 
 ## potpourri: programs that possess multiple applications without a specific general focus
 
