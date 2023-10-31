@@ -8,3 +8,8 @@ tests
 basic/tests
 positioner/tests
 potpourri/tests
+
+# ignore folders
+tmp
+data
+

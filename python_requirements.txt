@@ -1,0 +1,6 @@
+pandas
+numpy
+logging
+re
+argparse
+configparser
