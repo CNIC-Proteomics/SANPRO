@@ -90,6 +90,9 @@ Usage:
 python positioner/get_appris.py  -i tests/test7/Paths_PDMTableMaker_PDMTable_GM_2.txt  -c "q,b,e"  -d tests/test7/human_202306.appris.gtf -o tests/test7/appris_annots.gtf
 ```
 
+```
+python positioner/get_appris.py  -i tests/test8/LIMMA_NM_pgmqfall_table.tsv  -c "q,b,e"  -d data/202310/appris.gtf -o tests/test8/LIMMA_NM_pgmqfall_table.appris.tsv
+```
 
 
 
