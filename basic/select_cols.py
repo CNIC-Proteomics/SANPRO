@@ -30,7 +30,7 @@ parser = argparse.ArgumentParser(
     Note: Please read the config file to determine which parameters should be used.
     ''',
     formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-c', required=True, help='Config input file in YAML format')
+parser.add_argument('-c', required=True, help='Config input file in INI format')
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
