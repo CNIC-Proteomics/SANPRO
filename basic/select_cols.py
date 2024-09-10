@@ -50,11 +50,17 @@ def main(args):
     conf_args = common.read_config(script_name, args.c)
     [ print(f"{k} = {v}") for k,v in conf_args.items() ]
     ifile = conf_args['infile']
-    cols = re.split('\s*,\s*', conf_args['cols']) if args.c and args.c != '' else []
     ofile = conf_args['outfile']
+    nh = int(conf_args['n_headers']) if 'n_headers' in conf_args else 1
+    cols = re.split('\s*;\s*', conf_args['cols']) if args.c and args.c != '' else []
+    # if there are 2 headers, convert the lsit of tuples
+    cols = [ eval(c) for c in cols ] if nh == 2 else cols
 
-    logging.info("reading input files...")
-    data = pd.read_csv(ifile, sep="\t", low_memory=False)
+    logging.info(f"reading input files with {nh} headers...")
+    if nh == 2:
+        data = pd.read_csv(ifile, sep="\t", low_memory=False, header=[0,1]) # two headers
+    else:
+        data = pd.read_csv(ifile, sep="\t", low_memory=False, nrows=10)
 
     logging.info(f"checking the given columns: {cols}")
     # get the columns that do not exist in the table
