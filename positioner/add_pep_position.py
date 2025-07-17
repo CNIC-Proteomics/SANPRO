@@ -79,15 +79,25 @@ def main(args):
 
 
     logging.info("reading report file...")
+    # Two headers:
     report = pd.read_csv(ifile1, sep="\t", header=[0,1], na_values=['NA', 'excluded'], low_memory=False) # two header rows
+    # # One header:
+    # report = pd.read_csv(ifile1, sep="\t", na_values=['NA', 'excluded'], low_memory=False)
 
 
 
     logging.info("parsing the report file...")
+    # Two headers:
     # Filter by levels
     rep = report[[(hp,'LEVEL'),(hq,'LEVEL')]]
     # rename the columns
     rep.columns = [c[0] for c in rep.columns]
+    
+    # # One header
+    # # Filter by levels
+    # rep = report[[hp,hq]]
+    
+    # reset
     rep = rep.reset_index(drop=True)
     # Extract the raw peptide containing the delta-mass, if applicable.
     rep[hp] = rep[hp].fillna('')
@@ -162,6 +172,8 @@ def main(args):
     
 
     logging.info("adding the result columns into report...")
+    
+    # Two headers:
     # join the int tuples into string (remembering that the int tuple is converting to str tuple)
     report[('peptide_pos','STATS')] = [';'.join(['-'.join(map(str,i)) for i in p]) for p in rep[f"{hp}_pos"]]
     # add the length of protein sequences
@@ -170,6 +182,16 @@ def main(args):
     report[('protein_seqmw','STATS')] = [';'.join(map(str,p)) for p in rep[f"{hq}_seqmw"]]
     # add the protein coverage
     report[('protein_coverage','STATS')] = [';'.join(map(str,p)) for p in rep[f"{hq}_coverage"]]
+
+    # # One header:
+    # # join the int tuples into string (remembering that the int tuple is converting to str tuple)
+    # report['peptide_pos'] = [';'.join(['-'.join(map(str,i)) for i in p]) for p in rep[f"{hp}_pos"]]
+    # # add the length of protein sequences
+    # report['protein_seqlen'] = [';'.join(map(str,p)) for p in rep[f"{hq}_seqlen"]]
+    # # add the molecular weight in daltons
+    # report['protein_seqmw'] = [';'.join(map(str,p)) for p in rep[f"{hq}_seqmw"]]
+    # # add the protein coverage
+    # report['protein_coverage'] = [';'.join(map(str,p)) for p in rep[f"{hq}_coverage"]]
     
 
 
