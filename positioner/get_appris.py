@@ -29,8 +29,8 @@ parser = argparse.ArgumentParser(
       -w   10
       -i   tests/test7/Paths_PDMTableMaker_PDMTable_GM_2.txt
       -c   q,b,e
-      -d   tests/test7/human_202306.appris.gtf
-      -o   tests/test7/appris_annots.gtf
+      -d   Databases/APPRIS/202501/human/human_202501.appris.tsv
+      -o   tests/test7/appris_annots.tsv
     ''',
     formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-w',   type=int, default=4, help='Number of threads/n_workers (default: %(default)s)')
@@ -46,44 +46,52 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s', date
 #############
 # Constants #
 #############
-APPRIS_COLUMNS = [
-    'seqname',
-    'source',
-    'feature',
-    'pep_start',
-    'pep_end',
-    'score',
-    'strand',
-    'frame',
-    'ensembl_gene_id',
-    'ensembl_transc_id',
-    'note',
-    'gene_name',
-    'uniprot_id'
-]
+
 
 
 ###################
 # Local functions #
 ###################
-def split_str(a):
-    # replace
-    a = a.replace('_','-')
-    # convert the lists into NumPy arrays
-    return a.split(";")
+def split_str(x,a):
+    try:
+        # replace
+        a = a.replace('_','-')
+        # convert the lists into NumPy arrays
+        X = x.split(";") if ';' in x else [x]
+        A = a.split(";") if ';' in a else [a]
+        # Combine the arrays element-wise
+        C = [ x+':'+c for x in X for c in A ]
+        return C
+    except:
+        return []
 
-def split_2strs(a,b):
-    # convert the lists into NumPy arrays
-    A = a.split(";")
-    B = b.split(";")
-    # Combine the arrays element-wise
-    C = [ a[0]+'-'+a[1] for a in zip(A,B) ]
-    return C
+def split_2strs(x,a,b):
+    try:
+        # create query_index
+        I = x+':'+a+'-'+b
+        # convert the lists into NumPy arrays
+        X = x.split(";") if ';' in x else [x]
+        A = a.split(";") if ';' in a else [a]
+        B = b.split(";") if ';' in b else [b]
+        # Combine the arrays element-wise to obtain the Query
+        Q = [ (I,cx+':'+c[0]+'-'+c[1]) for cx in X for c in zip(A,B) ]
+        return Q
+        # Q = [ (I,c) for c in Q ]
+        # Q = [ cx+':'+c[0]+'-'+c[1] for cx in X for c in zip(A,B) ]
+        # return [(I,Q)]
+    except:
+        return []
     
 def run_tabix(q, bgzip, header):
+    # get inputs from the query
+    I = q[0]
+    Q = q[1]
     # execute command
-    proc = subprocess.Popen([f"tabix {bgzip} '{q}'"], stdout=subprocess.PIPE, stderr=subprocess.PIPE,  shell=True)
+    proc = subprocess.Popen([f"tabix {bgzip} '{Q}'"], stdout=subprocess.PIPE, stderr=subprocess.PIPE,  shell=True)
     (out, err) = proc.communicate()
+    proc.stdout.close()  # close explicitly
+    proc.stderr.close()
+    proc.wait()  # ensure cleanup
     # convert bytes to strin
     out_str = out.decode('utf-8')
     # pre-processing the data
@@ -91,8 +99,9 @@ def run_tabix(q, bgzip, header):
     # create df
     df = pd.DataFrame(out_dat, columns=header)
     # insert the query in the first column
-    df.insert(loc=0, column='query', value=q)
+    df.insert(loc=0, column='query', value=I)
     return df
+
 
 
 #################
@@ -135,12 +144,12 @@ def main(args):
         os.system(f"tabix -p gff '{dbfile_bgzip}'")
 
 
+
+
     logging.info(f"reading protein table using the {q_cols} columns...")
     q_rep = pd.read_csv(q_ifile, sep="\t", usecols=q_cols, low_memory=False)
-    # begin:
-    # for debugging
-    # q_rep = q_rep[q_rep.iloc[:,0] == 'Q1HP67']
-    # end
+    
+    
     
     
     logging.info("pre-processing the queries...")
@@ -149,29 +158,28 @@ def main(args):
     # q_cols = ['q','b','e']
     if len(q_cols) == 3:
         q_query = list(zip(q_rep.iloc[:,0], q_rep.iloc[:,1], q_rep.iloc[:,2]))
-        q_query = [ q[0]+':'+qq for q in q_query for qq in split_2strs(q[1],q[2]) ]
+        q_query = [ qq for q in q_query if not pd.isna(q[0]) for qq in split_2strs(str(q[0]),str(q[1]),str(q[2])) ]
     # q_cols = ['q','f']
     elif len(q_cols) == 2:
         q_query = list(zip(q_rep.iloc[:,0], q_rep.iloc[:,1]))
-        q_query = [ q[0]+':'+qq for q in q_query for qq in split_str(q[1]) ]
+        q_query = [ qq for q in q_query if not pd.isna(q[0]) for qq in split_str(str(q[0]),str(q[1])) ]
     # q_cols = ['q']
     else:
         q_query = list(zip(q_rep.iloc[:,0]))
     # unique queries
-    q_query = np.unique(q_query)
-    # begin:
-    # for debugging
-    # q_query = ["P84085:70-170","O14628-5:5-100"]
-    # end
+    q_query = list(set(q_query))
+
+
+
 
     logging.info("querying the protein:start-end in the appris annotations database...")
-    with concurrent.futures.ProcessPoolExecutor(max_workers=n_workers) as executor:         
+    with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:         
         q_results = executor.map( run_tabix, q_query, repeat(dbfile_bgzip), repeat(db_header))
     q_result = pd.concat(q_results)
-    # begin:
-    # for debugging in Spyder
-    # q_result = run_tabix(q_query[0], dbfile_bgzip, db_header)
-    # end
+    # drop duplicates
+    q_result = q_result.drop_duplicates()
+
+
 
 
     logging.info("printing the output file...")
