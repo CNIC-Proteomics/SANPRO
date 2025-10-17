@@ -7,6 +7,7 @@
 import sys
 import argparse
 import logging
+from string import digits, ascii_letters
 import pandas as pd
 from pyfaidx import Fasta
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
@@ -75,7 +76,12 @@ def main(args):
     hp  = args.hp
     hq  = args.hq
     ofile = args.o
-
+    # ifile1 = r"S:\U_Proteomica\UNIDAD\Softwares\jmrodriguezc\SANPRO\tests\test4\Npep2prot.tsv"
+    # ifile2 = r"S:\U_Proteomica\UNIDAD\Softwares\jmrodriguezc\SANPRO\tests\test4\mouse_202206_uni-sw-tr.target.fasta"
+    # hp  = 'peptide'
+    # hq  = 'protein'
+    # ofile = r"S:\U_Proteomica\UNIDAD\Softwares\jmrodriguezc\SANPRO\tests\test4\Npep2prot.new2.tsv"
+    
 
 
     logging.info("reading report file...")
@@ -99,14 +105,49 @@ def main(args):
     
     # reset
     rep = rep.reset_index(drop=True)
+    rep[hq] = rep[hq].fillna('')
+    
+    
+    
+    logging.info("extracting the raw peptide...")
     # Extract the raw peptide containing the delta-mass, if applicable.
-    rep[hp] = rep[hp].fillna('')
-    p = [i[0] for i in rep[hp].str.split('__')]
+    split_pep = rep[hp].str.split('__')
+    p = [i[0] for i in split_pep]
+    m = [i[1] for i in split_pep]
     rep[f"{hp}_raw"] = p
     # if the columns has ';' separator, then split the multiple proteins in a list an create one column.
-    rep[hq] = rep[hq].fillna('')
     q = rep[hq].str.split(r"\s*;\s*", regex=True)
     rep[f"{hq}_raw"] = q
+    
+    
+    
+    logging.info("extracting the modification...")
+    # get the modifications
+    rep[f"{hp}_mods"] = m
+    # remove isobaric labeling
+    def remove_tmt_itraq(text):
+        parts = [p.strip() for p in text.split(';')]
+        filtered = [ p for p in parts if 'itraq' not in p.lower() and 'tmt' not in p.lower() and 'carbamidomethyl' not in p.lower() ]
+        return ';'.join(filtered)
+    m_f = [remove_tmt_itraq(t) for t in m]
+    rep[f"{hp}_mods"] = m_f
+    # obtain a list of modification position
+    def get_mod_position(s: str):
+        mod = None
+        pos_str = []
+        for ch in s:
+            if mod is None and ch in ascii_letters:
+                mod = ch
+            elif mod and ch in digits:
+                pos_str.append(ch)
+            elif ch == '(':
+                break
+        if not pos_str:
+            return (mod, None)
+        pos = int(''.join(pos_str))
+        return (mod, pos)    
+    m_p = [ [ get_mod_position(s) for s in m.split(';') ] if m != '' else [] for m in m_f ]
+    rep[f"{hp}_mod_pos"] = m_p
 
 
 
@@ -148,6 +189,36 @@ def main(args):
     
     
     
+    logging.info("getting the modification positions for the protein list...")
+    # get a list of tuple with the modification and the list of peptide positions
+    mp = list(zip(rep[f"{hp}_mod_pos"],rep[f"{hp}_pos"]))
+    # sum the mod position to the start peptide    
+    modification_pos = [ [ (x[0],y[0]+x[1]-1) for y in m[1] for x in m[0] if len(m[0]) > 0 and x[1] is not None ] for m in mp]
+    rep["modification_pos"] = modification_pos
+    
+    
+    
+    logging.info("getting the modification positions ...")
+    # Extract the modifications ptide containing the delta-mass, if applicable.
+    rep[hp] = rep[hp].fillna('')
+    split_pep = rep[hp].str.split('__')
+    p = [i[0] for i in split_pep]
+    m = [i[1] for i in split_pep]
+    rep[f"{hp}_raw"] = p
+    # if the columns has ';' separator, then split the multiple proteins in a list an create one column.
+    rep[hq] = rep[hq].fillna('')
+    q = rep[hq].str.split(r"\s*;\s*", regex=True)
+    rep[f"{hq}_raw"] = q
+
+
+    # get a list of tuple with the peptide and the list of proteins
+    ps = list(zip(rep[f"{hp}_raw"],rep[f"{hq}_seqs"]))
+    # add the start/end index of peptide
+    peptide_pos = [ [ (s.find(r[0])+1,s.find(r[0])+len(r[0])) if s != '' else [(0,0)] for s in r[1] ] for r in ps ]
+    rep[f"{hp}_pos"] = peptide_pos
+
+
+
     logging.info("getting the protein coverage...")
     # get a list of tuple with the protein and peptide positions
     qp = list(zip(rep[f"{hq}_raw"],rep[f"{hp}_pos"]))
@@ -172,10 +243,13 @@ def main(args):
     
 
     logging.info("adding the result columns into report...")
-    
     # Two headers:
     # join the int tuples into string (remembering that the int tuple is converting to str tuple)
+    report[('peptide_raw','STATS')] = [p for p in rep[f"{hp}_raw"]]
+    # join the int tuples into string (remembering that the int tuple is converting to str tuple)
     report[('peptide_pos','STATS')] = [';'.join(['-'.join(map(str,i)) for i in p]) for p in rep[f"{hp}_pos"]]
+    # join the int tuples into string (remembering that the int tuple is converting to str tuple)
+    report[('modification_pos','STATS')] = [';'.join([''.join(map(str,i)) for i in p]) for p in rep["modification_pos"]]
     # add the length of protein sequences
     report[('protein_seqlen','STATS')] = [';'.join(map(str,p)) for p in rep[f"{hq}_seqlen"]]
     # add the molecular weight in daltons
